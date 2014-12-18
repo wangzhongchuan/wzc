@@ -1,0 +1,74 @@
+1.#include <stdio.h>
+2.#include <stdlib.h>
+3.#include <errno.h>
+4.#include <string.h>
+5.
+6.#define N 10
+7.#define MAX 100
+8.
+9.int child_read_pipe(int fd)
+10.{
+11.    char buf[N];
+12.    int n = 0;
+13.
+14.    while(1)
+15.    {
+16.        n = read(fd,buf,sizeof(buf));
+17.        buf[n] = '\0';
+18.
+19.        printf("Read %d bytes : %s.\n",n,buf);
+20.
+21.        if(strncmp(buf,"quit",4) == 0)
+22.            break;
+23.    }
+24.
+25.    return 0;
+26.}
+27.
+28.int father_write_pipe(int fd)
+29.{
+30.    char buf[MAX] = {0};
+31.    
+32.    while(1)
+33.    {
+34.        printf(">");
+35.        fgets(buf,sizeof(buf),stdin);
+36.        buf[strlen(buf)-1] = '\0';
+37.        write(fd,buf,strlen(buf));
+38.        usleep(500);
+39.        if(strncmp(buf,"quit",4) == 0)
+40.            break;
+41.    }
+42.
+43.    return 0;
+44.}
+45.
+46.int main()
+47.{
+48.    int pid;
+49.    int fd[2];
+50.
+51.    if(pipe(fd) < 0)
+52.    {
+53.        perror("Fail to pipe");
+54.        exit(EXIT_FAILURE);
+55.    }
+56.
+57.    if((pid = fork()) < 0)
+58.    {
+59.        perror("Fail to fork");
+60.        exit(EXIT_FAILURE);
+61.
+62.    }else if(pid == 0){
+63.
+64.        close(fd[1]);
+65.        child_read_pipe(fd[0]);
+66.
+67.    }else{
+68.        
+69.        close(fd[0]);
+70.        father_write_pipe(fd[1]);
+71.    }
+72.    
+73.    exit(EXIT_SUCCESS);
+74.}

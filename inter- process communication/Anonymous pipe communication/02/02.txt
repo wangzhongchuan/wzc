@@ -1,0 +1,26 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<stdlib.h>
+int main()
+{
+   int n;
+   int fd[2];
+   int count=0;
+  char buf[100]={0};
+  if(pipe(fd)<0)
+  {
+   perror("Fail to create pipe");
+   exit(EXIT_FAILURE);
+   }
+  close(fd[1]);
+
+  if((n=read(fd[0],buf,sizeof(buf)))<0)
+  {  
+   perror("Fail to read pipe");
+   exit(EXIT_FAILURE);
+   }
+
+  printf("Rread %d bytes : %s.\n",n,buf);
+
+ return 0;
+}
